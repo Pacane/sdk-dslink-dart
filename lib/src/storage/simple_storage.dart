@@ -58,7 +58,7 @@ class SimpleStorageManager implements IStorageManager {
     List<Future<List<ISubscriptionNodeStorage>>> loading = [];
     for (FileSystemEntity entity in subDir.listSync()) {
       if (await FileSystemEntity.type(entity.path) ==
-          FileSystemEntityType.DIRECTORY) {
+          FileSystemEntityType.directory) {
         String rpath = UriComponentDecoder.decode(entity.path.substring(
             entity.path.lastIndexOf(Platform.pathSeparator) + 1));
         SimpleResponderStorage responder =
@@ -160,7 +160,7 @@ class SimpleNodeStorage extends ISubscriptionNodeStorage {
   void addValue(ValueUpdate value) {
     qos = 3;
     value.storedData = "${DsJson.encode(value.toMap())}\n";
-    file.openSync(mode: FileMode.APPEND)
+    file.openSync(mode: FileMode.append)
       ..writeStringSync(value.storedData)
       ..closeSync();
   }
@@ -273,7 +273,6 @@ class SimpleValueStorage extends IValueStorage {
   }
   bool _pendingSet = false;
   Object _pendingValue;
-  Object _setValue;
 
   /// set the value, if previous setting is not finished, it will be set later
   void setValue(Object value) {
@@ -281,7 +280,6 @@ class SimpleValueStorage extends IValueStorage {
     if (_pendingSet) {
       return;
     }
-    _setValue = value;
     _pendingValue = null;
     _pendingSet = true;
     _file.writeAsString(DsJson.encode(value)).then(onSetDone).catchError(onSetDone);
@@ -295,7 +293,6 @@ class SimpleValueStorage extends IValueStorage {
 
   void destroy() {
     _pendingValue = null;
-    _setValue = null;
     _file.delete().catchError(_ignoreError);
   }
 

@@ -7,56 +7,30 @@ import "dart:typed_data";
 import "dart:math" as Math;
 import "dart:isolate";
 
-import "package:bignum/bignum.dart";
-import "package:cipher/cipher.dart" hide PublicKey, PrivateKey;
-import "package:cipher/digests/sha256.dart";
-import "package:cipher/key_generators/ec_key_generator.dart";
-import "package:cipher/params/key_generators/ec_key_generator_parameters.dart";
-import "package:cipher/random/secure_random_base.dart";
-import "package:cipher/random/block_ctr_random.dart";
-import "package:cipher/block/aes_fast.dart";
 
-import "package:cipher/ecc/ecc_base.dart";
-import "package:cipher/ecc/ecc_fp.dart" as fp;
+
 
 import "../pk.dart";
 import "../../../utils.dart";
+import '../big_int_utils.dart';
+
+import 'package:pointycastle/ecc/curves/secp256r1.dart';
+import 'package:pointycastle/api.dart' hide PublicKey, PrivateKey;
+import 'package:pointycastle/ecc/api.dart';
+import "package:pointycastle/digests/sha256.dart";
+import "package:pointycastle/key_generators/ec_key_generator.dart";
+import "package:pointycastle/key_generators/api.dart";
+import "package:pointycastle/random/block_ctr_random.dart";
+import "package:pointycastle/block/aes_fast.dart";
+
+import "package:pointycastle/ecc/ecc_base.dart";
+import "package:pointycastle/ecc/ecc_fp.dart" as fp;
+
 
 part "isolate.dart";
 
 /// hard code the EC curve data here, so the compiler don"t have to register all curves
-ECDomainParameters __secp256r1;
-ECDomainParameters get _secp256r1 {
-  if (__secp256r1 != null) {
-    return __secp256r1;
-  }
-
-  BigInteger q = new BigInteger(
-    "ffffffff00000001000000000000000000000000ffffffffffffffffffffffff", 16);
-  BigInteger a = new BigInteger(
-    "ffffffff00000001000000000000000000000000fffffffffffffffffffffffc", 16);
-  BigInteger b = new BigInteger(
-    "5ac635d8aa3a93e7b3ebbd55769886bc651d06b0cc53b0f63bce3c3e27d2604b", 16);
-  BigInteger g = new BigInteger(
-    "046b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c2964fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5",
-    16);
-  BigInteger n = new BigInteger(
-    "ffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551", 16);
-  BigInteger h = new BigInteger("1", 16);
-  BigInteger seed =
-  new BigInteger("c49d360886e704936a6678e1139d26b7819f7e90", 16);
-  var seedBytes = seed.toByteArray();
-
-  var curve = new fp.ECCurve(q, a, b);
-  return new ECDomainParametersImpl(
-    "secp256r1",
-    curve,
-    curve.decodePoint(g.toByteArray()),
-    n,
-    h,
-    seedBytes
-  );
-}
+ECDomainParameters get _secp256r1 => ECCurve_secp256r1();
 
 class DartCryptoProvider implements CryptoProvider {
   static final DartCryptoProvider INSTANCE = new DartCryptoProvider();
@@ -70,7 +44,7 @@ class DartCryptoProvider implements CryptoProvider {
     if (ECDHIsolate.running) {
       if (old is ECDHImpl) {
         return ECDHIsolate._sendRequest(
-            publicKeyRemote, old._ecPrivateKey.d.toRadix(16));
+            publicKeyRemote, old._ecPrivateKey.d.toRadixString(16));
       } else {
         return ECDHIsolate._sendRequest(publicKeyRemote, null);
       }
@@ -83,7 +57,7 @@ class DartCryptoProvider implements CryptoProvider {
         (old is ECDHImpl && old._ecPrivateKey == _cachedPrivate)) {
       var gen = new ECKeyGenerator();
       var rsapars = new ECKeyGeneratorParameters(_secp256r1);
-      var params = new ParametersWithRandom(rsapars, random);
+      var params = new ParametersWithRandom(rsapars, SecureRandom()); // TODO JTH Check if this is OK
       gen.init(params);
       var pair = gen.generateKeyPair();
       _cachedPrivate = pair.privateKey;
@@ -142,13 +116,15 @@ class DartCryptoProvider implements CryptoProvider {
   PrivateKey loadFromString(String str) {
     if (str.contains(" ")) {
       List ss = str.split(" ");
-      var d = new BigInteger.fromBytes(1, Base64.decode(ss[0]));
+      var d = readBytes(Base64.decode(ss[0]));
       ECPrivateKey pri = new ECPrivateKey(d, _secp256r1);
       var Q = _secp256r1.curve.decodePoint(Base64.decode(ss[1]));
       ECPublicKey pub = new ECPublicKey(Q, _secp256r1);
       return new PrivateKeyImpl(pri, pub);
     } else {
-      var d = new BigInteger.fromBytes(1, Base64.decode(str));
+      var decode = Base64.decode(str);
+      var z = decode.toList();
+      var d = readBytes(decode);
       ECPrivateKey pri = new ECPrivateKey(d, _secp256r1);
       return new PrivateKeyImpl(pri);
     }
@@ -193,7 +169,7 @@ class ECDHImpl extends ECDH {
   }
 
   String hashSalt(String salt) {
-    Uint8List encoded = toUTF8(salt);
+    Uint8List encoded = utf8.encode(salt);
     Uint8List raw = new Uint8List(encoded.length + bytes.length);
     int i;
     for (i = 0; i < encoded.length; i++) {
@@ -211,7 +187,7 @@ class ECDHImpl extends ECDH {
 }
 
 class PublicKeyImpl extends PublicKey {
-  static final BigInteger publicExp = new BigInteger(65537);
+  static final BigInt publicExp = BigInt.from(65537);
 
   ECPublicKey ecPublicKey;
   String qBase64;
@@ -238,7 +214,7 @@ class PrivateKeyImpl implements PrivateKey {
   }
 
   String saveToString() {
-    return "${Base64.encode(bigintToUint8List(ecPrivateKey.d))} ${publicKey.qBase64}";
+    return "${Base64.encode(bigIntToBytes(ecPrivateKey.d))} ${publicKey.qBase64}";
   }
 
   Future<ECDHImpl> getSecret(String key) async {
@@ -250,7 +226,7 @@ class PrivateKeyImpl implements PrivateKey {
 }
 
 /// random number generator
-class DSRandomImpl extends SecureRandomBase implements DSRandom {
+class DSRandomImpl implements DSRandom, SecureRandom {
   bool get needsEntropy => true;
 
   BlockCtrRandom _delegate;
@@ -327,6 +303,26 @@ class DSRandomImpl extends SecureRandomBase implements DSRandom {
   int nextUint8() {
     return _delegate.nextUint8();
   }
+
+  @override
+  int nextUint16() {
+    return _delegate.nextUint16();
+  }
+
+  @override
+  BigInt nextBigInteger(int bitLength) {
+    return _delegate.nextBigInteger(bitLength);
+  }
+
+  @override
+  Uint8List nextBytes(int count) {
+    return _delegate.nextBytes(count);
+  }
+
+  @override
+  int nextUint32() {
+    return _delegate.nextUint32();
+  }
 }
 
 String bytes2hex(List<int> bytes) {
@@ -337,10 +333,10 @@ String bytes2hex(List<int> bytes) {
   return result.toString();
 }
 
-/// BigInteger.toByteArray contains negative values, so we need a different version
+/// BigInt.toByteArray contains negative values, so we need a different version
 /// this version also remove the byte for sign, so it's not able to serialize negative number
-Uint8List bigintToUint8List(BigInteger input) {
-  List<int> rslt = input.toByteArray();
+Uint8List bigintToUint8List(BigInt input) {
+  List<int> rslt = bigIntToBytes(input);
   if (rslt.length > 32 && rslt[0] == 0){
     rslt = rslt.sublist(1);
   }

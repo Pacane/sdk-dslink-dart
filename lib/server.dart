@@ -13,7 +13,7 @@ abstract class IRemoteRequester {
 ContentType _jsonContentType = new ContentType("application", "json", charset: "utf-8");
 
 void updateResponseBeforeWrite(HttpRequest request,
-    [int statusCode = HttpStatus.OK,
+    [int statusCode = HttpStatus.ok,
     ContentType contentType,
     bool noContentType = false]) {
   var response = request.response;

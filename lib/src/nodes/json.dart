@@ -29,14 +29,14 @@ class DsaJsonNode extends SimpleNode {
     }
 
     clearValue();
-    JsonDiff.JsonDiffer differ = new JsonDiff.JsonDiffer(
-      JSON.encode(_json),
-      JSON.encode(input)
+    JsonDiffer differ = new JsonDiffer(
+      json.encode(_json),
+      json.encode(input)
     );
 
-    JsonDiff.DiffNode fullDiff = differ.diff();
+    DiffNode fullDiff = differ.diff();
 
-    void apply(JsonDiff.DiffNode diff, DsaJsonNode node) {
+    void apply(DiffNode diff, DsaJsonNode node) {
       for (String key in diff.added.keys) {
         var name = NodeNamer.createName(key);
         provider.addNode(

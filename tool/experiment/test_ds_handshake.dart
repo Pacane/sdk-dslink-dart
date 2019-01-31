@@ -24,18 +24,18 @@ void main() {
 //
 //  /// Initialize connection , Server -> Client
 //
-//  BigInteger A = new BigInteger.fromBytes(1, nonceBytes);
-//  BigInteger E = A.modPow(new BigInteger(65537), modulus);
+//  BigInt A = new BigInt.fromBytes(1, nonceBytes);
+//  BigInt E = A.modPow(new BigInt(65537), modulus);
 //  String encryptedNonce = Base64.encode(bigintToUint8List(E));
 //  __assertEqual(encryptedNonce, encryptedNonceCompare, 'encryptedNonce');
 //
 //  /// Start Connection (http or ws), Client -> Server
 //  /// Decode
 //
-//  BigInteger decodeE = new BigInteger.fromBytes(1, Base64.decode(encryptedNonce));
+//  BigInt decodeE = new BigInt.fromBytes(1, Base64.decode(encryptedNonce));
 //  __assertEqual(decodeE, E, 'decoded E');
 //
-//  BigInteger decryptedA = E.modPow(privateExp, modulus);
+//  BigInt decryptedA = E.modPow(privateExp, modulus);
 //  __assertEqual(decryptedA, A, 'decrypted A');
 //
 //  Uint8List decryptedNonce = bigintToUint8List(decryptedA);
@@ -44,7 +44,7 @@ void main() {
 //  /// Make Auth
 //
 //  List<int> authRaw = new Uint8List.fromList([]
-//    ..addAll(UTF8.encode(salt))
+//    ..addAll(utf8.encode(salt))
 //    ..addAll(decryptedNonce));
 //  __assertEqual(bytes2hex(authRaw), '3078313030d26538aabf9a97bcfd8bc0dd1a727c92', 'auth raw');
 //

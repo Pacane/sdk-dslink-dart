@@ -1,7 +1,7 @@
 part of dslink.historian;
 
 abstract class Rollup {
-  dynamic get value;
+  num get value;
 
   void add(dynamic input);
 
@@ -23,7 +23,7 @@ class FirstRollup extends Rollup {
     set = false;
   }
 
-  dynamic value;
+  num value;
   bool set = false;
 }
 
@@ -37,7 +37,7 @@ class LastRollup extends Rollup {
   void reset() {
   }
 
-  dynamic value;
+  num value;
 }
 
 class AvgRollup extends Rollup {
@@ -63,7 +63,7 @@ class AvgRollup extends Rollup {
 
   dynamic total = 0.0;
 
-  dynamic get value => total / count;
+  num get value => total / count;
   int count = 0;
 }
 
@@ -86,7 +86,7 @@ class SumRollup extends Rollup {
     value = 0.0;
   }
 
-  dynamic value = 0.0;
+  num value = 0.0;
 }
 
 class CountRollup extends Rollup {
@@ -100,21 +100,22 @@ class CountRollup extends Rollup {
     value = 0;
   }
 
-  dynamic value = 0;
+  num value = 0;
 }
 
 class MaxRollup extends Rollup {
   @override
   void add(input) {
     if (input is String) {
-      input = num.parse(input, (e) => null);
+      input = num.tryParse(input);
+      input = input ?? double.negativeInfinity;
     }
 
     if (input is! num) {
       return;
     }
 
-    value = max(value == null ? double.NEGATIVE_INFINITY : value, input);
+    value = max(value, input);
   }
 
   @override
@@ -122,21 +123,21 @@ class MaxRollup extends Rollup {
     value = null;
   }
 
-  dynamic value;
+  num value;
 }
 
 class MinRollup extends Rollup {
   @override
   void add(input) {
     if (input is String) {
-      input = num.parse(input, (e) => null);
+      input = num.tryParse(input);
     }
 
     if (input is! num) {
       return;
     }
 
-    value = min(value == null ? double.INFINITY : value, input);
+    value = min(value == null ? double.infinity : value, input);
   }
 
   @override
@@ -144,7 +145,7 @@ class MinRollup extends Rollup {
     value = null;
   }
 
-  dynamic value;
+  num value;
 }
 
 typedef Rollup RollupFactory();

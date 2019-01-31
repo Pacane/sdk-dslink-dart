@@ -1,6 +1,5 @@
 import 'package:dslink/src/crypto/pk.dart';
 import 'dart:io';
-import '../../lib/utils.dart';
 
  main() async{
   String rslt;

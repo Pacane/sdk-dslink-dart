@@ -7,7 +7,8 @@ import "dart:convert";
 import "package:dslink/common.dart";
 import "package:dslink/responder.dart";
 
-import "package:json_diff/json_diff.dart" as JsonDiff;
+import 'package:json_diff/json_diff.dart';
+
 
 import "package:dslink/utils.dart" show Producer;
 
@@ -153,7 +154,7 @@ class ResolvingNodeProvider extends SimpleNodeProvider {
     LocalNode node = super.getNode(path);
     if (path != "/" && node != null && !forceHandle) {
       if (onLoaded != null && !onLoaded.isCompleted) {
-        onLoaded.complete(node);
+        onLoaded.complete(node as CallbackNode);
       }
       return node;
     }

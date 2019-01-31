@@ -17,8 +17,6 @@ import "src/http/websocket_conn.dart";
 
 import "package:logging/logging.dart";
 
-import "package:dslink/broker_discovery.dart" show BrokerDiscoveryClient;
-
 export "src/crypto/pk.dart";
 
 part "src/http/client_link.dart";
@@ -273,7 +271,7 @@ class LinkProvider {
         file.createSync(recursive: true);
       }
       logger.clearListeners();
-      IOSink out = _logFileOut = file.openWrite(mode: FileMode.APPEND);
+      IOSink out = _logFileOut = file.openWrite(mode: FileMode.append);
       logger.onRecord.listen((record) {
         out.writeln("[${new DateTime.now()}][${record.level.name}] ${record.message}");
         if (record.error != null) {
@@ -291,7 +289,7 @@ class LinkProvider {
     if (_watchFile != null) {
       var file = new File(_watchFile);
       StreamSubscription sub;
-      sub = file.watch(events: FileSystemEvent.DELETE).listen((_) {
+      sub = file.watch(events: FileSystemEvent.delete).listen((_) {
         close();
         sub.cancel();
 
@@ -455,12 +453,9 @@ class LinkProvider {
         keyFile.writeAsStringSync(key);
       }
     }
+
     SimpleNode.initEncryption(privateKey.saveToString());
     
-    if (opts["discover"]) {
-      _discoverBroker = true;
-    }
-
     if (optionsHandler != null) {
       optionsHandler(opts);
     }
@@ -473,8 +468,6 @@ class LinkProvider {
   Future<String> chooseBroker(Stream<String> brokers) async {
     return await brokers.first;
   }
-
-  bool _discoverBroker = false;
 
   /// Retrieves a Broadcast Stream which subscribes to [path] with the specified [cacheLevel].
   /// The node is only subscribed if there is at least one stream subscription.
@@ -563,23 +556,7 @@ class LinkProvider {
       }
     }
 
-    if (_discoverBroker) {
-      var discovery = new BrokerDiscoveryClient();
-      new Future(() async {
-        await discovery.init();
-        try {
-          var broker = await chooseBroker(discovery.discover());
-          logger.info("Discovered Broker at ${broker}");
-          brokerUrl = broker;
-          doRun();
-        } catch (e, stack) {
-          logger.severe("Failed to discover a broker.", e, stack);
-          exit(1);
-        }
-      });
-    } else {
-      doRun();
-    }
+    doRun();
   }
 
   HttpClientLink createHttpLink() {

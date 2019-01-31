@@ -696,7 +696,7 @@ class SimpleNode extends LocalNodeImpl {
   static  KeyParameter _encryptParams;
   static initEncryption(String key) {
     _encryptEngine = new AESFastEngine();
-    _encryptParams = new KeyParameter(UTF8.encode(key).sublist(48,80));
+    _encryptParams = new KeyParameter(utf8.encode(key).sublist(48,80));
   }
   
   /// encrypt the string and prefix the value with '\u001Bpw:'
@@ -708,7 +708,7 @@ class SimpleNode extends LocalNodeImpl {
     _encryptEngine.reset();
     _encryptEngine.init(true, _encryptParams);
 
-    Uint8List utf8bytes = UTF8.encode(str);
+    Uint8List utf8bytes = utf8.encode(str);
     Uint8List block = new Uint8List((utf8bytes.length + 31 )~/32 * 32);
     block.setRange(0, utf8bytes.length, utf8bytes);
     return '\u001Bpw:${Base64.encode(_encryptEngine.process(block))}';
@@ -717,7 +717,7 @@ class SimpleNode extends LocalNodeImpl {
     if (str.startsWith('\u001Bpw:')) {
       _encryptEngine.reset();
       _encryptEngine.init(false, _encryptParams);
-      String rslt = UTF8.decode(_encryptEngine.process(Base64.decode(str.substring(4))));
+      String rslt = utf8.decode(_encryptEngine.process(Base64.decode(str.substring(4))));
       int pos = rslt.indexOf('\u0000');
       if (pos >= 0) rslt = rslt.substring(0, pos);
       return rslt;
@@ -728,7 +728,7 @@ class SimpleNode extends LocalNodeImpl {
       try{
         _encryptEngine.reset();
          _encryptEngine.init(false, _encryptParams);
-         String rslt = UTF8.decode(_encryptEngine.process(Base64.decode(str)));
+         String rslt = utf8.decode(_encryptEngine.process(Base64.decode(str)));
          int pos = rslt.indexOf('\u0000');
          if (pos >= 0) rslt = rslt.substring(0, pos);
          return rslt;
@@ -773,7 +773,7 @@ class SimpleNode extends LocalNodeImpl {
       childPathPre = '$path/';
     }
 
-    m.forEach((String key, value) {
+    m.forEach((key, value) {
       if (key.startsWith('?')) {
         if (key == '?value') {
           updateValue(value);
@@ -1282,12 +1282,11 @@ class SimpleNode extends LocalNodeImpl {
       }
     } else {
       if (value == null) {
-        return removeChild(name);
+        removeChild(name);
       } else if (value is Map) {
-        return createChild(name, value);
+        createChild(name, value);
       } else {
         addChild(name, value);
-        return value;
       }
     }
   }

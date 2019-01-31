@@ -35,7 +35,6 @@ class AddNodeAction extends SimpleNode {
     void closed(InvokeResponse resp) {
       print('closed');
     }
-    int colCount = 1;
     int tcount = 0;
     tableRslt.onClose = closed;
     tableRslt.columns = [{'name': 'a'}];

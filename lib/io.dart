@@ -65,7 +65,7 @@ class HttpHelper {
     return const Utf8Decoder().convert(await readBytesFromResponse(response));
   }
 
-  /// Fetches the specified [url] from HTTP as JSON.
+  /// Fetches the specified [url] from HTTP as json.
   /// If [headers] is specified, the headers will be added onto the request.
   static Future<dynamic> fetchJSON(String url, {Map<String, String> headers}) async {
     return const JsonDecoder().convert(await fetchUrl(url, headers: headers));
@@ -111,7 +111,7 @@ class HttpHelper {
     for (int i = 0; i < 16; i++) {
       nonceData[i] = random.nextInt(256);
     }
-    String nonce = BASE64.encode(nonceData);
+    String nonce = base64.encode(nonceData);
 
     int port = uri.port;
     if (port == 0) {
@@ -136,16 +136,16 @@ class HttpHelper {
       if (uri.userInfo != null && !uri.userInfo.isEmpty) {
         // If the URL contains user information use that for basic
         // authorization.
-        String auth = BASE64.encode(UTF8.encode(uri.userInfo));
-        request.headers.set(HttpHeaders.AUTHORIZATION, "Basic $auth");
+        String auth = base64.encode(utf8.encode(uri.userInfo));
+        request.headers.set(HttpHeaders.authorizationHeader, "Basic $auth");
       }
       if (headers != null) {
         headers.forEach((field, value) => request.headers.add(field, value));
       }
       // Setup the initial handshake.
       request.headers
-        ..set(HttpHeaders.CONNECTION, "Upgrade")
-        ..set(HttpHeaders.UPGRADE, "websocket")
+        ..set(HttpHeaders.connectionHeader, "Upgrade")
+        ..set(HttpHeaders.upgradeHeader, "websocket")
         ..set("Sec-WebSocket-Key", nonce)
         ..set("Cache-Control", "no-cache")
         ..set("Sec-WebSocket-Version", "13");
@@ -163,11 +163,11 @@ class HttpHelper {
         });
         throw new WebSocketException(message);
       }
-      if (response.statusCode != HttpStatus.SWITCHING_PROTOCOLS ||
-        response.headers[HttpHeaders.CONNECTION] == null ||
-        !response.headers[HttpHeaders.CONNECTION].any(
+      if (response.statusCode != HttpStatus.switchingProtocols ||
+        response.headers[HttpHeaders.connectionHeader] == null ||
+        !response.headers[HttpHeaders.connectionHeader].any(
               (value) => value.toLowerCase() == "upgrade") ||
-        response.headers.value(HttpHeaders.UPGRADE).toLowerCase() != "websocket") {
+        response.headers.value(HttpHeaders.upgradeHeader).toLowerCase() != "websocket") {
         error("Connection to '$uri' was not upgraded to websocket");
       }
       String accept = response.headers.value("Sec-WebSocket-Accept");
@@ -175,7 +175,7 @@ class HttpHelper {
         error("Response did not contain a 'Sec-WebSocket-Accept' header");
       }
       List<int> expectedAccept = sha1.convert("$nonce$_webSocketGUID".codeUnits).bytes;
-      List<int> receivedAccept = BASE64.decode(accept);
+      List<int> receivedAccept = base64.decode(accept);
       if (expectedAccept.length != receivedAccept.length) {
         error("Response header 'Sec-WebSocket-Accept' is the wrong length");
       }
@@ -186,7 +186,7 @@ class HttpHelper {
       }
       var protocol = response.headers.value('Sec-WebSocket-Protocol');
       return response.detachSocket().then((socket) {
-        socket.setOption(SocketOption.TCP_NODELAY, _tcpNoDelay);
+        socket.setOption(SocketOption.tcpNoDelay, _tcpNoDelay);
         return new WebSocket.fromUpgradedSocket(
           socket,
           protocol: protocol,
@@ -218,7 +218,7 @@ class HttpHelper {
     if (!WebSocketTransformer.isUpgradeRequest(request)) {
       // Send error response.
       response
-        ..statusCode = HttpStatus.BAD_REQUEST
+        ..statusCode = HttpStatus.badRequest
         ..close();
       return new Future.error(
         new WebSocketException("Invalid WebSocket upgrade request"));
@@ -227,11 +227,11 @@ class HttpHelper {
     Future<WebSocket> upgrade(String protocol) {
       // Send the upgrade response.
       response
-        ..statusCode = HttpStatus.SWITCHING_PROTOCOLS
-        ..headers.add(HttpHeaders.CONNECTION, "Upgrade")
-        ..headers.add(HttpHeaders.UPGRADE, "websocket");
+        ..statusCode = HttpStatus.switchingProtocols
+        ..headers.add(HttpHeaders.connectionHeader, "Upgrade")
+        ..headers.add(HttpHeaders.upgradeHeader, "websocket");
       String key = request.headers.value("Sec-WebSocket-Key");
-      String accept = BASE64.encode(
+      String accept = base64.encode(
         sha1.convert("$key$_webSocketGUID".codeUnits).bytes
       );
       response.headers.add("Sec-WebSocket-Accept", accept);
@@ -241,7 +241,7 @@ class HttpHelper {
       response.headers.contentLength = 0;
       return response.detachSocket()
         .then((socket) {
-        socket.setOption(SocketOption.TCP_NODELAY, _tcpNoDelay);
+        socket.setOption(SocketOption.tcpNoDelay, _tcpNoDelay);
         return new WebSocket.fromUpgradedSocket(
           socket, protocol: protocol, serverSide: true);
       });
@@ -252,8 +252,9 @@ class HttpHelper {
       // The suggested protocols can be spread over multiple lines, each
       // consisting of multiple protocols. To unify all of them, first join
       // the lists with ', ' and then tokenize.
+      // TODO JTH This doesn't make sense.
       protocols = HttpHelper.tokenizeFieldValue(protocols.join(', '));
-      return new Future(() => protocolSelector(protocols)).then((String protocol) {
+      return new Future(() => protocolSelector(protocols)).then((protocol) {
         if (protocols.indexOf(protocol) < 0) {
           throw new WebSocketException(
             "Selected protocol is not in the list of available protocols");
@@ -261,7 +262,7 @@ class HttpHelper {
         return protocol;
       }).catchError((error) {
         response
-          ..statusCode = HttpStatus.INTERNAL_SERVER_ERROR
+          ..statusCode = HttpStatus.internalServerError
           ..close();
         throw error;
       }).then((result) {
@@ -297,7 +298,7 @@ class HttpHelper {
 
 /// Generates a random socket port.
 Future<int> getRandomSocketPort() async {
-  var server = await ServerSocket.bind(InternetAddress.LOOPBACK_IP_V4.address, 0);
+  var server = await ServerSocket.bind(InternetAddress.loopbackIPv4.address, 0);
   var port = server.port;
   await server.close();
   return port;
@@ -318,7 +319,7 @@ Future<File> _safeWriteBase(File targetFile, dynamic content,
   if (verifyJson) {
     final readContent = await tempFile.readAsString();
     try {
-      JSON.decode(readContent);
+      json.decode(readContent);
     } on FormatException catch (e, s) {
       canOverwriteOriginalFile = false;
       logger.severe(
