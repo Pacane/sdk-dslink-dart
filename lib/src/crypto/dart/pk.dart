@@ -57,7 +57,7 @@ class DartCryptoProvider implements CryptoProvider {
         (old is ECDHImpl && old._ecPrivateKey == _cachedPrivate)) {
       var gen = new ECKeyGenerator();
       var rsapars = new ECKeyGeneratorParameters(_secp256r1);
-      var params = new ParametersWithRandom(rsapars, SecureRandom()); // TODO JTH Check if this is OK
+      var params = new ParametersWithRandom(rsapars, DSRandomImpl());
       gen.init(params);
       var pair = gen.generateKeyPair();
       _cachedPrivate = pair.privateKey;

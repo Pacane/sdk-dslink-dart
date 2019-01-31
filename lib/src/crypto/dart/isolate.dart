@@ -17,7 +17,7 @@ List<dynamic> generate(List<int> publicKeyRemote, String oldPriKeyStr) {
     var gen = new ECKeyGenerator();
     var rsapars = new ECKeyGeneratorParameters(_secp256r1);
     var params = new ParametersWithRandom(rsapars,
-        SecureRandom()); // TODO JTH Check for this
+        DSRandomImpl());
     gen.init(params);
     var pair = gen.generateKeyPair();
     privateKey = pair.privateKey;
