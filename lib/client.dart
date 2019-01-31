@@ -24,8 +24,6 @@ part "src/http/client_link.dart";
 /// A Handler for Argument Results
 typedef void OptionResultsHandler(ArgResults results);
 
-typedef _TwoArgumentProfileFunction(String path, SimpleNodeProvider provider);
-
 /// Main Entry Point for DSLinks on the Dart VM
 class LinkProvider {
   /// The Link Object
@@ -60,7 +58,7 @@ class LinkProvider {
   Map<String, dynamic> defaultNodes;
 
   /// Profiles
-  Map<String, Function> profiles;
+  Map<String, NodeFactory> profiles;
 
   /// Enable HTTP Fallback?
   bool enableHttp = true;
@@ -527,18 +525,6 @@ class LinkProvider {
     }
 
     _initialized = true;
-
-    if (profiles != null) {
-      for (var key in profiles.keys.toList()) {
-        var value = profiles[key];
-
-        if (value is _TwoArgumentProfileFunction) {
-          profiles[key] = (String path) {
-            return value(path, provider);
-          };
-        }
-      }
-    }
 
     if (provider == null) {
       provider = new SimpleNodeProvider(null, profiles);

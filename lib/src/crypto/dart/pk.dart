@@ -23,10 +23,6 @@ import "package:pointycastle/key_generators/api.dart";
 import "package:pointycastle/random/block_ctr_random.dart";
 import "package:pointycastle/block/aes_fast.dart";
 
-import "package:pointycastle/ecc/ecc_base.dart";
-import "package:pointycastle/ecc/ecc_fp.dart" as fp;
-
-
 part "isolate.dart";
 
 /// hard code the EC curve data here, so the compiler don"t have to register all curves
@@ -123,7 +119,6 @@ class DartCryptoProvider implements CryptoProvider {
       return new PrivateKeyImpl(pri, pub);
     } else {
       var decode = Base64.decode(str);
-      var z = decode.toList();
       var d = readBytes(decode);
       ECPrivateKey pri = new ECPrivateKey(d, _secp256r1);
       return new PrivateKeyImpl(pri);

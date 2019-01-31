@@ -224,7 +224,6 @@ class HttpClientLink extends ClientLink {
     }
 
     try {
-      var p = _nonce.encodedPublicKey;
       var hashSalt = _nonce.hashSalt(
           salt);
       String wsUrl = '$_wsUpdateUri&auth=${hashSalt}&format=$format';
