@@ -8,7 +8,7 @@ import "dart:typed_data";
 import "dart:math";
 
 import "package:logging/logging.dart";
-import "package:msgpack2/msgpack2.dart";
+import 'package:msgpack_dart/msgpack_dart.dart';
 
 part "src/utils/base64.dart";
 part "src/utils/timer.dart";
