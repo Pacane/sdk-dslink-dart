@@ -2,7 +2,7 @@ part of dslink.requester;
 
 // TODO: merge with defaultProfileMap in common lib
 class DefaultDefNodes {
-  static final Map _defaultDefs = {
+  static final Map<String, Map<String, Object>> _defaultDefs = {
     "node": {},
     "static": {},
     "getHistory": {
@@ -75,7 +75,7 @@ class DefaultDefNodes {
 
   static final Map<String, Node> nameMap = () {
     var rslt = new Map<String, Node>();
-    _defaultDefs.forEach((String k, Map m) {
+    _defaultDefs.forEach((k, m) {
       String path = '/defs/profile/$k';
       RemoteDefNode node = new RemoteDefNode(path);
       m.forEach((String n, Object v) {

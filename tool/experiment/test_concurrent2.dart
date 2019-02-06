@@ -9,7 +9,6 @@ import "package:dslink/utils.dart";
 import "package:logging/logging.dart";
 
 import "package:args/args.dart";
-import 'dart:async';
 
 class TestNodeProvider extends NodeProvider {
   TestNode onlyNode;

@@ -8,7 +8,7 @@ import "dart:typed_data";
 import "dart:math";
 
 import "package:logging/logging.dart";
-import "package:msgpack/msgpack.dart";
+import 'package:msgpack_dart/msgpack_dart.dart';
 
 part "src/utils/base64.dart";
 part "src/utils/timer.dart";
@@ -382,8 +382,6 @@ List<String> parseEnumType(String type) {
 List<Map<String, dynamic>> buildActionIO(Map<String, String> types) {
   return types.keys.map((it) => {"name": it, "type": types[it]}).toList();
 }
-
-Random _random = new Random();
 
 String generateBasicId({int length: 30}) {
   var r0 = new Random();

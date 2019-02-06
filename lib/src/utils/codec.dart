@@ -163,21 +163,12 @@ class DsMsgPackCodecImpl extends DsCodec {
 
   Map decodeBinaryFrame(List<int> input) {
     Uint8List data = ByteDataUtil.list2Uint8List(input);
-    if (_unpacker == null) {
-      _unpacker = new Unpacker(data.buffer, data.offsetInBytes);
-    } else {
-      _unpacker.reset(data.buffer, 0);
-      _unpacker.offset = data.offsetInBytes;
-    }
-    Object rslt = _unpacker.unpack();
+    Object rslt = deserialize(data);
     if (rslt is Map) {
       return rslt;
     }
-    _unpacker.data = null;
     return {};
   }
-
-  Unpacker _unpacker;
 
   Map decodeStringFrame(String input) {
     // not supported
@@ -185,6 +176,6 @@ class DsMsgPackCodecImpl extends DsCodec {
   }
 
   Object encodeFrame(Map val) {
-    return pack(val);
+    return serialize(val);
   }
 }

@@ -224,8 +224,9 @@ class HttpClientLink extends ClientLink {
     }
 
     try {
-      String wsUrl = '$_wsUpdateUri&auth=${_nonce.hashSalt(
-          salt)}&format=$format';
+      var hashSalt = _nonce.hashSalt(
+          salt);
+      String wsUrl = '$_wsUpdateUri&auth=${hashSalt}&format=$format';
       if (tokenHash != null) {
         wsUrl = '$wsUrl$tokenHash';
       }

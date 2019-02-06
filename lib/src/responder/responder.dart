@@ -349,11 +349,7 @@ class Responder extends ConnectionHandler {
           permission = maxPermit;
         }
 
-        Map<String, dynamic> params;
-
-        if (m["params"] is Map<String, dynamic>) {
-          params = m["params"] as Map<String, dynamic>;
-        }
+        Map<String, dynamic> params = m['params'].cast<String, dynamic>();
 
         if (params == null) {
           params = {};

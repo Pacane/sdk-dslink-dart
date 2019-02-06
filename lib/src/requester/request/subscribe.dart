@@ -16,9 +16,7 @@ class ReqSubscribeListener implements StreamSubscription {
   }
 
   // TODO: define a custom class to replace StreamSubscription
-  Future asFuture([futureValue]) {
-    return null;
-  }
+  Future<E> asFuture<E>([E futureValue]) => null;
 
   bool get isPaused => false;
 

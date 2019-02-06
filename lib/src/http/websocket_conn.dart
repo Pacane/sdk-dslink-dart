@@ -401,8 +401,8 @@ class WebSocketConnection extends Connection {
   String logName;
 
   void close() {
-    if (socket.readyState == WebSocket.OPEN ||
-        socket.readyState == WebSocket.CONNECTING) {
+    if (socket.readyState == WebSocket.open ||
+        socket.readyState == WebSocket.connecting) {
       socket.close();
     }
     _onDone();
